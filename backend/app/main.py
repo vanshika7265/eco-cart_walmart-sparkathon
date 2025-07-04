@@ -58,4 +58,8 @@ async def get_recommendations(cart_request: CartRequest):
     cart = cart_request.cart
     suggestions = recommend_alternatives(cart, df)
     return {"recommendations": suggestions}
-
+@app.get("/products")
+def get_products():
+    df = load_data()
+    products = df.to_dict(orient="records")
+    return products
