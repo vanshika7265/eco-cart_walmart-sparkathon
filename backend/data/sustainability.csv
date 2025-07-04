@@ -1,0 +1,11 @@
+product_name,category,carbon,water,packaging,ethics_score
+plastic_bottle,Beverages,300,2.5,20,2
+bamboo_bottle,Beverages,50,1.0,10,5
+beef_burger,Food,2700,1500,15,1
+plant_based_burger,Food,450,500,10,4
+cotton_shirt,Apparel,1200,10000,50,3
+recycled_polyester_shirt,Apparel,600,2000,20,4
+aluminum_foil,Kitchen,1400,1000,10,2
+beeswax_wrap,Kitchen,200,200,5,5
+disposable_cutlery,Kitchen,800,400,15,1
+bamboo_cutlery,Kitchen,150,150,5,5
