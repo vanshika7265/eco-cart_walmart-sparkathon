@@ -63,3 +63,35 @@ def get_products():
     df = load_data()
     products = df.to_dict(orient="records")
     return products
+
+
+@app.get("/dashboard-stats")
+def dashboard_stats():
+    df = load_data()
+
+    # Calculate averages
+    avg_carbon = round(df["carbon"].mean(), 2)
+    avg_water = round(df["water"].mean(), 2)
+    avg_packaging = round(df["packaging"].mean(), 2)
+
+    # Top 2 categories by average carbon
+    top_categories = (
+        df.groupby("category")["carbon"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(2)
+        .reset_index()
+        .to_dict(orient="records")
+    )
+
+    # Mock recommendations (optional: collect from usage later)
+    most_recommended = ["metal_flask", "veggie_burger"]
+
+    return {
+        "average_carbon": avg_carbon,
+        "average_water": avg_water,
+        "average_packaging": avg_packaging,
+        "top_categories_by_impact": top_categories,
+        "most_recommended_items": most_recommended
+    }
+
