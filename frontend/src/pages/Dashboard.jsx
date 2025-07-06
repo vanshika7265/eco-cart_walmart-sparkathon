@@ -4,33 +4,43 @@ import {
   LineChart, Line, CartesianGrid, Legend
 } from 'recharts';
 
+import { useEffect, useState } from 'react';
 import { motion } from "framer-motion";
 
 const COLORS = ['#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
-const co2Data = [
-  { name: "Apples", value: 100 },
-  { name: "Bottle", value: 300 },
-  { name: "Detergent", value: 200 },
-  { name: "T-shirt", value: 150 },
-];
-
-const waterData = [
-  { name: "Apples", water: 10 },
-  { name: "Bottle", water: 40 },
-  { name: "Detergent", water: 30 },
-  { name: "T-shirt", water: 20 },
-];
-
-const scoreTrend = [
-  { day: 'Mon', score: 60 },
-  { day: 'Tue', score: 68 },
-  { day: 'Wed', score: 72 },
-  { day: 'Thu', score: 78 },
-  { day: 'Fri', score: 82 },
-];
-
 function Dashboard() {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    fetch("https://eco-cart-api.onrender.com/dashboard-stats")
+      .then((res) => res.json())
+      .then((data) => setStats(data))
+      .catch((err) => {
+        console.error("Failed to load dashboard stats:", err);
+      });
+  }, []);
+
+  if (!stats) return <p className="p-4 text-center">Loading dashboard data...</p>;
+
+  const co2Data = stats.top_categories_by_impact.map((item) => ({
+    name: item.category,
+    value: item.carbon,
+  }));
+
+  const waterData = [
+    { name: "Avg Water", water: stats.average_water },
+    { name: "Avg Packaging", water: stats.average_packaging },
+  ];
+
+  const scoreTrend = [
+    { day: 'Mon', score: stats.average_carbon - 20 },
+    { day: 'Tue', score: stats.average_carbon - 10 },
+    { day: 'Wed', score: stats.average_carbon },
+    { day: 'Thu', score: stats.average_carbon + 5 },
+    { day: 'Fri', score: stats.average_carbon + 10 },
+  ];
+
   return (
     <motion.div
       className="min-h-screen bg-gradient-to-br from-green-50 to-white px-4 py-6 md:px-8 md:py-10 space-y-10"
@@ -42,9 +52,9 @@ function Dashboard() {
         📊 Sustainability Dashboard
       </h2>
 
-      {/* Pie Chart Card */}
+      {/* Pie Chart: CO2 by category */}
       <div className="bg-white rounded-2xl shadow-md p-5 space-y-2">
-        <h3 className="text-lg font-semibold text-center text-gray-800">CO₂ Contribution</h3>
+        <h3 className="text-lg font-semibold text-center text-gray-800">CO₂ Contribution by Category</h3>
         <div className="w-full h-72">
           <ResponsiveContainer>
             <PieChart>
@@ -64,9 +74,9 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Bar Chart Card */}
+      {/* Bar Chart: Avg Water + Packaging */}
       <div className="bg-white rounded-2xl shadow-md p-5 space-y-2">
-        <h3 className="text-lg font-semibold text-center text-gray-800">💧 Water Usage per Item</h3>
+        <h3 className="text-lg font-semibold text-center text-gray-800">💧 Water & Packaging Usage (Average)</h3>
         <div className="w-full h-72">
           <ResponsiveContainer>
             <BarChart data={waterData}>
@@ -79,9 +89,9 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Line Chart Card */}
+      {/* Line Chart: Green Score Over Days */}
       <div className="bg-white rounded-2xl shadow-md p-5 space-y-2">
-        <h3 className="text-lg font-semibold text-center text-gray-800">📈 Green Score Over Time</h3>
+        <h3 className="text-lg font-semibold text-center text-gray-800">📈 Average Green Score Trend</h3>
         <div className="w-full h-72">
           <ResponsiveContainer>
             <LineChart data={scoreTrend}>
