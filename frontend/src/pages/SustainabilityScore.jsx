@@ -7,21 +7,30 @@ import { useWindowSize } from "react-use";
 
 function SustainabilityScore() {
   const [data, setData] = useState(null);
-  const { width, height } = useWindowSize(); // ⬅️ required for confetti
+  const { width, height } = useWindowSize(); // For confetti
 
   useEffect(() => {
-    const mock = {
-      greenScore: 94, // 🔁 change this to test confetti (e.g., 78 or 94)
-      co2Impact: 230,
-      waterUsage: 42,
-      packagingWaste: 180,
-      isPlasticFree: true,
-      hasLocalItems: false,
-    };
-    setData(mock);
+    // 1. Read cart from localStorage
+    const stored = localStorage.getItem("ecoCart");
+    const cartItems = stored ? JSON.parse(stored) : [];
+
+    // 2. Make API call
+    fetch("https://eco-cart-api.onrender.com/analyze-cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ cart: cartItems.map((item) => item.name) }),
+    })
+      .then((res) => res.json())
+      .then((result) => setData(result))
+      .catch((err) => {
+        console.error("Error analyzing cart:", err);
+        setData({ greenScore: 0 });
+      });
   }, []);
 
-  if (!data) return <p className="p-4">Loading...</p>;
+  if (!data) return <p className="p-4 text-center">Analyzing your cart...</p>;
 
   return (
     <motion.div
