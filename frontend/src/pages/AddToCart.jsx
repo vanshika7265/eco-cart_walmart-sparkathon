@@ -3,26 +3,26 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Leaf, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const mockProducts = [
-  { id: 1, name: "Organic Apples", category: "Fruits", ecoScore: "A" },
-  { id: 2, name: "Reusable Bottle", category: "Household", ecoScore: "B" },
-  { id: 3, name: "LED Bulbs", category: "Electronics", ecoScore: "A" },
-  { id: 4, name: "Plant-Based Milk", category: "Grocery", ecoScore: "A" },
-  { id: 5, name: "Eco Detergent", category: "Household", ecoScore: "B" },
-  { id: 6, name: "Bamboo Toothbrush", category: "Personal Care", ecoScore: "A" },
-  { id: 7, name: "Organic T-Shirt", category: "Clothing", ecoScore: "B" },
-  { id: 8, name: "Compost Bin", category: "Garden", ecoScore: "A" }
-];
-
 function AddToCart() {
+  const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
 
+  // Load products from API
+  useEffect(() => {
+    fetch("https://eco-cart-api.onrender.com/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch((err) => console.error("Failed to load products:", err));
+  }, []);
+
+  // Load cart from localStorage
   useEffect(() => {
     const stored = localStorage.getItem("ecoCart");
     if (stored) setCart(JSON.parse(stored));
   }, []);
 
+  // Save cart to localStorage
   useEffect(() => {
     localStorage.setItem("ecoCart", JSON.stringify(cart));
   }, [cart]);
@@ -46,40 +46,46 @@ function AddToCart() {
       </h2>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {mockProducts.map((item) => (
-          <motion.div
-            key={item.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: item.id * 0.05 }}
-            whileHover={{ scale: 1.03 }}
-            className="bg-white rounded-2xl shadow-lg p-4 flex flex-col justify-between hover:shadow-xl transition-all duration-300"
-          >
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-              <p className="text-sm text-gray-500">Category: {item.category}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Leaf className="w-4 h-4 text-green-500" />
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  item.ecoScore === "A"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-yellow-100 text-yellow-700"
-                }`}>
-                  Eco Score: {item.ecoScore}
-                </span>
-              </div>
-            </div>
-
-            <Button
-              className="mt-4 bg-green-600 text-white hover:bg-green-700"
-              onClick={() => addToCart(item)}
+      {products.length === 0 ? (
+        <p className="text-center text-gray-500">Loading products...</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {products.map((item) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: item.id * 0.05 }}
+              whileHover={{ scale: 1.03 }}
+              className="bg-white rounded-2xl shadow-lg p-4 flex flex-col justify-between hover:shadow-xl transition-all duration-300"
             >
-              <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
-            </Button>
-          </motion.div>
-        ))}
-      </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
+                <p className="text-sm text-gray-500">Category: {item.category}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Leaf className="w-4 h-4 text-green-500" />
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      item.ecoScore === "A"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    Eco Score: {item.ecoScore}
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                className="mt-4 bg-green-600 text-white hover:bg-green-700"
+                onClick={() => addToCart(item)}
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* Cart Toggle Button (Bottom Center) */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
