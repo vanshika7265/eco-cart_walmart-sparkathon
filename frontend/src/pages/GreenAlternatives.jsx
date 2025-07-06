@@ -6,15 +6,29 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from "recharts";
 
-const alternatives = [
-  { original: "Plastic Bottle", alternative: "Reusable Bottle", impact: "-90% Waste", type: "Waste", value: 90 },
-  { original: "Regular Detergent", alternative: "Eco Detergent", impact: "-70% Carbon", type: "Carbon", value: 70 },
-  { original: "Normal Toothbrush", alternative: "Bamboo Toothbrush", impact: "-65% Plastic", type: "Plastic", value: 65 },
-];
-
 function GreenAlternatives() {
+  const [alternatives, setAlternatives] = useState([]);
   const [replaced, setReplaced] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // 🔁 Fetch recommendations from API
+  useEffect(() => {
+    const stored = localStorage.getItem("ecoCart");
+    const cartItems = stored ? JSON.parse(stored) : [];
+
+    fetch("https://eco-cart-api.onrender.com/recommendations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ cart: cartItems.map((item) => item.name) })
+    })
+      .then((res) => res.json())
+      .then((data) => setAlternatives(data.recommendations || []))
+      .catch((err) => {
+        console.error("Failed to fetch recommendations:", err);
+      });
+  }, []);
 
   const handleReplace = (item) => {
     setReplaced((prev) => {
@@ -26,24 +40,21 @@ function GreenAlternatives() {
     });
   };
 
-  // Calculate active replacements
   const impactData = alternatives
     .filter((item) => replaced.includes(item.alternative))
     .map((item) => ({
       name: item.type,
-      reduction: item.value
+      reduction: item.value,
     }));
 
-  // Total impact calculation
   const totalImpact = impactData.reduce((acc, cur) => acc + cur.reduction, 0);
 
-  // Trigger confetti when all items are replaced
   useEffect(() => {
-    if (replaced.length === alternatives.length) {
+    if (replaced.length === alternatives.length && alternatives.length > 0) {
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 4000); // auto stop after 4s
+      setTimeout(() => setShowConfetti(false), 4000);
     }
-  }, [replaced]);
+  }, [replaced, alternatives]);
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-8 relative">
@@ -51,7 +62,7 @@ function GreenAlternatives() {
 
       <h2 className="text-3xl font-bold text-center text-green-700">♻️ Green Alternatives</h2>
 
-      {/* Summary Impact Chart */}
+      {/* Chart */}
       <div className="bg-white p-4 rounded-xl shadow-md">
         <h3 className="text-lg font-semibold mb-3 text-center">🌍 Environmental Impact Reduction</h3>
 
@@ -76,8 +87,7 @@ function GreenAlternatives() {
         )}
       </div>
 
-      {/* Badge for full replacement */}
-      {replaced.length === alternatives.length && (
+      {replaced.length === alternatives.length && alternatives.length > 0 && (
         <div className="text-center">
           <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium inline-block shadow">
             🏅 All Items Replaced – You’re a Green Champion!
@@ -85,7 +95,7 @@ function GreenAlternatives() {
         </div>
       )}
 
-      {/* Alternatives List */}
+      {/* List */}
       <div className="space-y-4">
         {alternatives.map((item, index) => (
           <motion.div
